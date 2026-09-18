@@ -25,14 +25,17 @@
 
     body {
       min-height: 100vh;
+      min-height: 100dvh;
       display: grid;
       place-items: center;
       background:
         radial-gradient(ellipse 80% 60% at 50% 40%, #222 0%, transparent 70%),
         linear-gradient(180deg, #1c1c1c 0%, #141414 100%);
       font-family: system-ui, -apple-system, sans-serif;
-      overflow: hidden;
-      padding: 2rem;
+      overflow-x: hidden;
+      overflow-y: auto;
+      padding: clamp(0.75rem, 3vw, 2rem);
+      padding-bottom: 5rem;
     }
 
     body::before {
@@ -50,15 +53,33 @@
     }
 
     .stage {
-      width: min(920px, 96vw);
+      --gap: clamp(10px, 1.6cqw, 14px);
+      --pad: clamp(12px, 2.2cqw, 24px);
+      --radius: clamp(18px, 2.5cqw, 28px);
+      --card-radius: clamp(16px, 2cqw, 22px);
+      --feature-h: clamp(240px, 48cqw, 420px);
+      --mid-top-h: clamp(150px, 28cqw, 222px);
+      --mid-bottom-h: clamp(140px, 24cqw, 184px);
+      --right-h: clamp(110px, 18cqw, 131px);
+
+      width: min(920px, 100%);
+      max-width: 100%;
       position: relative;
       z-index: 1;
+      container-type: inline-size;
+      container-name: stage;
+      transition: width 0.85s var(--ease);
+      margin-inline: auto;
+    }
+
+    .stage.is-morphing {
+      transition: width 0.85s var(--ease);
     }
 
     .dashboard {
       background: var(--surface);
-      border-radius: 28px;
-      padding: 22px 24px 24px;
+      border-radius: var(--radius);
+      padding: var(--pad);
       box-shadow:
         0 40px 80px rgba(0, 0, 0, 0.55),
         0 0 0 1px rgba(255, 255, 255, 0.04);
@@ -66,7 +87,9 @@
       transform: scale(0.94) translateY(20px);
       transition:
         opacity 0.65s var(--ease),
-        transform 0.65s var(--ease);
+        transform 0.65s var(--ease),
+        border-radius var(--shift) var(--ease),
+        padding var(--shift) var(--ease);
     }
 
     .dashboard.is-in {
@@ -78,8 +101,8 @@
     .topbar {
       display: flex;
       align-items: center;
-      gap: 14px;
-      margin-bottom: 16px;
+      gap: clamp(8px, 1.5vw, 14px);
+      margin-bottom: clamp(12px, 2vw, 16px);
     }
 
     .logo {
@@ -133,20 +156,20 @@
 
     .tabs {
       display: flex;
-      gap: 10px;
-      margin-bottom: 18px;
+      gap: clamp(6px, 1.2vw, 10px);
+      margin-bottom: clamp(12px, 2vw, 18px);
       padding-left: 0;
       max-width: 100%;
       transition: padding-left var(--shift) var(--ease);
     }
 
     .dashboard.has-left .tabs {
-      padding-left: calc(33.333% + 12px);
+      padding-left: calc(33.333% + var(--gap));
     }
 
     .tab {
       flex: 0 1 0;
-      height: 28px;
+      height: clamp(22px, 3.5vw, 28px);
       border-radius: 999px;
       background: var(--surface-raised);
       max-width: 110px;
@@ -169,10 +192,13 @@
     .grid {
       display: grid;
       grid-template-columns: 0fr 0fr 0fr;
-      gap: 14px;
-      min-height: 420px;
+      gap: var(--gap);
+      min-height: var(--feature-h);
       align-items: stretch;
-      transition: grid-template-columns var(--shift) var(--ease);
+      transition:
+        grid-template-columns var(--shift) var(--ease),
+        gap var(--shift) var(--ease),
+        min-height var(--shift) var(--ease);
     }
 
     .grid.show-left {
@@ -215,7 +241,7 @@
     }
 
     .col-slot.is-open + .col-slot.is-open {
-      margin-top: 14px;
+      margin-top: var(--gap);
     }
 
     .col-slot > .card {
@@ -225,8 +251,8 @@
 
     .card {
       background: var(--surface-raised);
-      border-radius: 22px;
-      padding: 16px;
+      border-radius: var(--card-radius);
+      padding: clamp(12px, 2vw, 16px);
       position: relative;
       box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.03);
       opacity: 0;
@@ -235,7 +261,9 @@
       transition:
         opacity 0.5s var(--ease),
         transform var(--grow) var(--ease),
-        border-radius 0.5s var(--ease);
+        border-radius var(--shift) var(--ease),
+        padding var(--shift) var(--ease),
+        height var(--shift) var(--ease);
       will-change: transform, opacity;
     }
 
@@ -248,8 +276,8 @@
     .feature {
       display: flex;
       flex-direction: column;
-      padding: 18px;
-      height: 420px;
+      padding: clamp(14px, 2vw, 18px);
+      height: var(--feature-h);
     }
 
     .feature-inner {
@@ -315,7 +343,7 @@
       display: flex;
       flex-direction: column;
       justify-content: space-between;
-      height: 222px;
+      height: var(--mid-top-h);
     }
 
     .lines {
@@ -354,9 +382,9 @@
     .mid-bottom {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 12px;
-      padding: 14px;
-      height: 184px;
+      gap: clamp(8px, 1.5vw, 12px);
+      padding: clamp(10px, 1.8vw, 14px);
+      height: var(--mid-bottom-h);
     }
 
     .list-block {
@@ -425,8 +453,8 @@
     .right-card {
       display: flex;
       flex-direction: column;
-      gap: 12px;
-      height: 131px;
+      gap: clamp(8px, 1.5vw, 12px);
+      height: var(--right-h);
     }
 
     .card-head {
@@ -562,27 +590,222 @@
       color: #eee;
     }
 
-    @media (max-width: 720px) {
-      body { padding: 1rem; }
-      .dashboard { padding: 14px; border-radius: 20px; }
-      .dashboard.has-left .tabs { padding-left: 0; }
-      .tabs { flex-wrap: wrap; }
-      .grid,
-      .grid.show-left,
-      .grid.show-left.show-mid,
-      .grid.show-left.show-mid.show-right {
-        grid-template-columns: 1fr;
-        min-height: auto;
+    .size-label {
+      position: fixed;
+      top: 24px;
+      left: 50%;
+      transform: translateX(-50%) translateY(-8px);
+      z-index: 10;
+      font-size: 12px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: #888;
+      background: rgba(40, 40, 40, 0.85);
+      padding: 8px 14px;
+      border-radius: 999px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.35s ease, transform 0.35s var(--ease);
+    }
+
+    .size-label.visible {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    /* —— Size-driven layouts (animated big → mid → small → mid → big) —— */
+    .stage[data-size="mid"] .dashboard.has-left .tabs {
+      padding-left: 0;
+    }
+
+    .stage[data-size="mid"] .tabs {
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+
+    .stage[data-size="mid"] .tabs::-webkit-scrollbar {
+      display: none;
+    }
+
+    .stage[data-size="mid"] .tab {
+      flex: 1 0 auto;
+      min-width: 56px;
+      max-width: none;
+    }
+
+    .stage[data-size="mid"] .grid {
+      min-height: 0;
+    }
+
+    .stage[data-size="mid"] .grid.show-left,
+    .stage[data-size="mid"] .grid.show-left.show-mid,
+    .stage[data-size="mid"] .grid.show-left.show-mid.show-right {
+      grid-template-columns: 1fr 1fr;
+      grid-template-areas:
+        "left left"
+        "mid right";
+    }
+
+    .stage[data-size="mid"] .grid.show-left:not(.show-mid) {
+      grid-template-columns: 1fr;
+      grid-template-areas: "left";
+    }
+
+    .stage[data-size="mid"] .grid.show-left.show-mid:not(.show-right) {
+      grid-template-columns: 1fr;
+      grid-template-areas:
+        "left"
+        "mid";
+    }
+
+    .stage[data-size="mid"] .col[data-col="left"] { grid-area: left; }
+    .stage[data-size="mid"] .col[data-col="mid"] { grid-area: mid; }
+    .stage[data-size="mid"] .col[data-col="right"] { grid-area: right; }
+
+    .stage[data-size="mid"] {
+      --feature-h: clamp(200px, 42cqw, 280px);
+      --mid-top-h: clamp(140px, 30cqw, 180px);
+    }
+
+    .stage[data-size="mid"] .mid-bottom {
+      height: auto;
+      min-height: 130px;
+    }
+
+    .stage[data-size="mid"] .right-card {
+      height: auto;
+      min-height: 100px;
+    }
+
+    .stage[data-size="mid"] .top-actions .pill-btn:nth-child(1),
+    .stage[data-size="mid"] .top-actions .pill-btn:nth-child(2) {
+      display: none;
+    }
+
+    .stage[data-size="small"] {
+      --feature-h: clamp(220px, 72cqw, 300px);
+      --pad: 12px;
+      --gap: 10px;
+    }
+
+    .stage[data-size="small"] .topbar {
+      gap: 8px;
+    }
+
+    .stage[data-size="small"] .search {
+      height: 26px;
+    }
+
+    .stage[data-size="small"] .dashboard.has-left .tabs {
+      padding-left: 0;
+    }
+
+    .stage[data-size="small"] .tabs {
+      gap: 6px;
+      margin-bottom: 12px;
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+
+    .stage[data-size="small"] .tabs::-webkit-scrollbar {
+      display: none;
+    }
+
+    .stage[data-size="small"] .tab {
+      flex: 1 0 auto;
+      min-width: 44px;
+      max-width: none;
+      height: 22px;
+    }
+
+    .stage[data-size="small"] .tab:nth-child(n + 5) {
+      display: none;
+    }
+
+    .stage[data-size="small"] .grid,
+    .stage[data-size="small"] .grid.show-left,
+    .stage[data-size="small"] .grid.show-left.show-mid,
+    .stage[data-size="small"] .grid.show-left.show-mid.show-right {
+      display: flex;
+      flex-direction: column;
+      gap: var(--gap);
+      min-height: 0;
+      grid-template-columns: none;
+      grid-template-areas: none;
+    }
+
+    .stage[data-size="small"] .col {
+      display: contents;
+    }
+
+    .stage[data-size="small"] .col-slot:not(.is-open) {
+      display: none;
+    }
+
+    .stage[data-size="small"] .col-slot.is-open {
+      display: block;
+      width: 100%;
+      margin-top: 0;
+    }
+
+    .stage[data-size="small"] .col-slot.is-open + .col-slot.is-open {
+      margin-top: 0;
+    }
+
+    .stage[data-size="small"] .col-slot {
+      grid-template-rows: none;
+    }
+
+    .stage[data-size="small"] .col-slot > .card {
+      overflow: visible;
+    }
+
+    .stage[data-size="small"] .mid-top {
+      height: 150px;
+    }
+
+    .stage[data-size="small"] .mid-bottom {
+      height: auto;
+      min-height: 148px;
+      grid-template-columns: 1.1fr 0.9fr;
+    }
+
+    .stage[data-size="small"] .right-card {
+      height: auto;
+      min-height: 108px;
+    }
+
+    .stage[data-size="small"] .toggle-face {
+      width: 48px;
+      height: 48px;
+    }
+
+    .stage[data-size="small"] .top-actions .pill-btn {
+      display: none;
+    }
+
+    .stage[data-size="small"] .top-actions .pill-btn:nth-child(3) {
+      display: block;
+    }
+
+    /* True viewport: keep page scrollable on real phones */
+    @media (max-width: 540px) {
+      body {
+        place-items: start center;
+        padding: 0.75rem;
+        padding-bottom: 5.5rem;
       }
-      .feature { height: 280px; }
-      .mid-top { height: 160px; }
-      .mid-bottom { height: auto; min-height: 140px; }
-      .right-card { height: auto; min-height: 110px; }
+
+      .replay {
+        bottom: 16px;
+      }
     }
   </style>
 </head>
 <body>
-  <div class="stage">
+  <div class="size-label" id="sizeLabel">Desktop</div>
+
+  <div class="stage" id="stage" data-size="big">
     <div class="dashboard" id="dashboard">
       <header class="topbar">
         <div class="logo anim pop" data-step="header"></div>
@@ -708,12 +931,26 @@
   <script>
     const dashboard = document.getElementById("dashboard");
     const grid = document.getElementById("grid");
+    const stage = document.getElementById("stage");
+    const sizeLabel = document.getElementById("sizeLabel");
     const replayBtn = document.getElementById("replay");
     const SHIFT_MS = 700;
     const GROW_MS = 750;
+    const MORPH_MS = 850;
+    const HOLD_MS = 800;
+
+    const SIZES = {
+      big: { width: 920, label: "Desktop" },
+      mid: { width: 680, label: "Tablet" },
+      small: { width: 360, label: "Mobile" },
+    };
+
+    // big → mid → small → mid → big
+    const MORPH_SEQUENCE = ["big", "mid", "small", "mid", "big"];
 
     let timers = [];
     let flipRaf = 0;
+    let morphing = false;
 
     function clearTimers() {
       timers.forEach(clearTimeout);
@@ -728,7 +965,6 @@
       });
     }
 
-    /** Snapshot positions of all grown cards for FLIP */
     function measureCards() {
       const map = new Map();
       document.querySelectorAll(".card.is-grown").forEach((el) => {
@@ -737,12 +973,7 @@
       return map;
     }
 
-    /**
-     * After a layout change, invert grown cards back to their
-     * previous rects, then play them into the new positions.
-     * This is what makes neighbors feel like they shove each other.
-     */
-    function flipFrom(firstRects) {
+    function flipFrom(firstRects, duration = SHIFT_MS) {
       const lasts = measureCards();
       const playing = [];
 
@@ -765,26 +996,23 @@
         playing.push(el);
       });
 
-      // Force reflow, then animate to resting transform
       void grid.offsetWidth;
 
       playing.forEach((el) => {
         el.style.transition =
-          `transform ${SHIFT_MS}ms cubic-bezier(0.22, 1, 0.36, 1), opacity 0.5s cubic-bezier(0.22, 1, 0.36, 1)`;
+          `transform ${duration}ms cubic-bezier(0.22, 1, 0.36, 1), opacity 0.5s cubic-bezier(0.22, 1, 0.36, 1)`;
         el.style.transform = "translate(0, 0) scale(1)";
       });
 
-      // Cleanup inline styles after the shift settles
       const cleanup = setTimeout(() => {
         playing.forEach((el) => {
           el.style.transition = "";
           el.style.transform = "";
         });
-      }, SHIFT_MS + 40);
+      }, duration + 40);
       timers.push(cleanup);
     }
 
-    /** Open a slot (grow height) and grow the card inside, FLIP-shifting siblings */
     async function growCard(slotSelector, { delay = 0 } = {}) {
       if (delay) await wait(delay);
 
@@ -793,7 +1021,6 @@
       const first = measureCards();
 
       slot.classList.add("is-open");
-      // Next frame so the 0fr → 1fr transition and FLIP both kick in
       await new Promise((r) => {
         flipRaf = requestAnimationFrame(() => {
           flipRaf = requestAnimationFrame(() => {
@@ -807,7 +1034,6 @@
       await wait(GROW_MS * 0.55);
     }
 
-    /** Expand a grid column; existing cards FLIP-shift sideways */
     async function showColumn(name, { delay = 0 } = {}) {
       if (delay) await wait(delay);
       const first = measureCards();
@@ -834,8 +1060,83 @@
       }
     }
 
+    function cappedWidth(target) {
+      const max = document.documentElement.clientWidth - 32;
+      return Math.min(target, Math.max(280, max));
+    }
+
+    function showSizeLabel(text) {
+      sizeLabel.textContent = text;
+      sizeLabel.classList.add("visible");
+    }
+
+    function hideSizeLabel() {
+      sizeLabel.classList.remove("visible");
+    }
+
+    /**
+     * Shrink/grow the stage width and switch layout (big/mid/small).
+     * Width eases via CSS; cards FLIP into the new arrangement.
+     */
+    async function setStageSize(key, { duration = MORPH_MS } = {}) {
+      const { width, label } = SIZES[key];
+      const next = cappedWidth(width);
+      showSizeLabel(label);
+
+      const first = measureCards();
+
+      stage.dataset.size = key;
+      stage.style.width = `${next}px`;
+
+      await new Promise((r) => {
+        flipRaf = requestAnimationFrame(() => {
+          flipRaf = requestAnimationFrame(() => {
+            flipFrom(first, duration);
+            r();
+          });
+        });
+      });
+
+      await wait(duration);
+    }
+
+    /** After build-up: big → mid → small → mid → big */
+    async function morphViewportCycle() {
+      morphing = true;
+      stage.classList.add("is-morphing");
+      stage.dataset.size = "big";
+      showSizeLabel(SIZES.big.label);
+      await wait(500);
+
+      for (let i = 1; i < MORPH_SEQUENCE.length; i++) {
+        await setStageSize(MORPH_SEQUENCE[i]);
+        await wait(HOLD_MS);
+      }
+
+      await wait(350);
+      hideSizeLabel();
+      stage.classList.remove("is-morphing");
+      morphing = false;
+    }
+
+    function resetStageWidth() {
+      stage.style.width = "";
+      stage.dataset.size = "big";
+      hideSizeLabel();
+      stage.classList.remove("is-morphing");
+      morphing = false;
+    }
+
+    function sizeFromViewport() {
+      const w = window.innerWidth;
+      if (w <= 540) return "small";
+      if (w <= 720) return "mid";
+      return "big";
+    }
+
     function reset() {
       clearTimers();
+      resetStageWidth();
       dashboard.classList.remove("is-in", "has-left");
       grid.classList.remove("show-left", "show-mid", "show-right");
       document.querySelectorAll(".col-slot").forEach((el) => el.classList.remove("is-open"));
@@ -853,21 +1154,21 @@
       reset();
       await wait(60);
 
-      // 1 — Shell
+      // Build at desktop size
+      stage.dataset.size = "big";
+      stage.style.width = `${cappedWidth(SIZES.big.width)}px`;
+
       dashboard.classList.add("is-in");
       await wait(420);
 
-      // 2 — Header
       await revealStep("header", 65);
       await wait(100);
       await revealStep("header-inner", 40);
       await wait(220);
 
-      // 3 — Tabs grow across
       await revealStep("tabs", 70);
       await wait(280);
 
-      // 4 — Left column opens, feature card grows to fill
       await showColumn("left");
       await growCard('[data-slot="left-0"]');
       await wait(120);
@@ -876,11 +1177,9 @@
       await revealStep("col-left-bits", 55);
       await wait(220);
 
-      // 5 — Middle column shoves left aside; cards stack & grow
       await showColumn("mid");
       await growCard('[data-slot="mid-0"]');
       await wait(80);
-      // Mid-bottom arrives and pushes mid-top upward
       await growCard('[data-slot="mid-1"]');
       await wait(100);
       await revealStep("col-mid-inner", 40);
@@ -888,7 +1187,6 @@
       await revealStep("col-mid-bits", 45);
       await wait(200);
 
-      // 6 — Right column squeezes in; three cards cascade downward
       await showColumn("right");
       await growCard('[data-slot="right-0"]');
       await growCard('[data-slot="right-1"]', { delay: 70 });
@@ -898,11 +1196,40 @@
       await wait(90);
       await revealStep("col-right-bits", 40);
 
-      await wait(520);
+      await wait(600);
+
+      // Responsive morph: big → middle → small → middle → big
+      await morphViewportCycle();
+
+      await wait(200);
       replayBtn.classList.add("visible");
     }
 
     replayBtn.addEventListener("click", play);
+
+    /* Keep layout in sync with real viewport when not morphing */
+    let resizeTimer = 0;
+    let lastWidth = window.innerWidth;
+
+    window.addEventListener("resize", () => {
+      if (morphing) return;
+      clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(() => {
+        const width = window.innerWidth;
+        if (Math.abs(width - lastWidth) < 2) return;
+        const first = measureCards();
+        lastWidth = width;
+
+        const nextSize = sizeFromViewport();
+        stage.dataset.size = nextSize;
+        stage.style.width = `${cappedWidth(SIZES[nextSize].width)}px`;
+
+        cancelAnimationFrame(flipRaf);
+        flipRaf = requestAnimationFrame(() => {
+          flipRaf = requestAnimationFrame(() => flipFrom(first));
+        });
+      }, 40);
+    });
 
     if (document.readyState === "loading") {
       document.addEventListener("DOMContentLoaded", play);
