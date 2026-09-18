@@ -1,0 +1,680 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Card Grid Build-Up</title>
+  <style>
+    :root {
+      --bg: #1a1a1a;
+      --surface: #2a2a2a;
+      --surface-raised: #333333;
+      --surface-inner: #3d3d3d;
+      --muted: #555555;
+      --muted-light: #6a6a6a;
+      --line: #4a4a4a;
+      --ease: cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      background:
+        radial-gradient(ellipse 80% 60% at 50% 40%, #222 0%, transparent 70%),
+        linear-gradient(180deg, #1c1c1c 0%, #141414 100%);
+      font-family: system-ui, -apple-system, sans-serif;
+      overflow: hidden;
+      padding: 2rem;
+    }
+
+    /* Noise texture via repeating soft stripes */
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      background: repeating-linear-gradient(
+        90deg,
+        transparent 0,
+        transparent 80px,
+        rgba(255, 255, 255, 0.015) 80px,
+        rgba(255, 255, 255, 0.015) 81px
+      );
+      pointer-events: none;
+    }
+
+    .stage {
+      width: min(920px, 96vw);
+      position: relative;
+      z-index: 1;
+    }
+
+    .dashboard {
+      background: var(--surface);
+      border-radius: 28px;
+      padding: 22px 24px 24px;
+      box-shadow:
+        0 40px 80px rgba(0, 0, 0, 0.55),
+        0 0 0 1px rgba(255, 255, 255, 0.04);
+      opacity: 0;
+      transform: scale(0.92) translateY(24px);
+      transition:
+        opacity 0.7s var(--ease),
+        transform 0.7s var(--ease);
+    }
+
+    .dashboard.is-in {
+      opacity: 1;
+      transform: scale(1) translateY(0);
+    }
+
+    /* —— Header —— */
+    .topbar {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 16px;
+    }
+
+    .logo {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: var(--muted);
+      flex-shrink: 0;
+    }
+
+    .search {
+      flex: 1;
+      height: 28px;
+      border-radius: 999px;
+      background: var(--surface-raised);
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      padding-right: 8px;
+    }
+
+    .search-icon {
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: var(--muted);
+    }
+
+    .top-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+
+    .pill-btn {
+      width: 36px;
+      height: 22px;
+      border-radius: 999px;
+      background: var(--surface-raised);
+    }
+
+    .avatar {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: var(--muted);
+    }
+
+    .tabs {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 18px;
+      padding-left: calc(33.333% + 12px);
+    }
+
+    .tab {
+      flex: 1;
+      height: 28px;
+      border-radius: 999px;
+      background: var(--surface-raised);
+      max-width: 110px;
+    }
+
+    /* —— Grid —— */
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1.15fr 1fr;
+      gap: 14px;
+      min-height: 420px;
+    }
+
+    .col {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      min-height: 0;
+    }
+
+    .card {
+      background: var(--surface-raised);
+      border-radius: 22px;
+      padding: 16px;
+      position: relative;
+      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.03);
+    }
+
+    /* Left feature */
+    .feature {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      padding: 18px;
+      min-height: 420px;
+    }
+
+    .feature-inner {
+      flex: 1;
+      background: var(--surface-inner);
+      border-radius: 18px;
+      position: relative;
+      margin-bottom: 18px;
+    }
+
+    .feature-badge {
+      position: absolute;
+      top: 14px;
+      right: 14px;
+      width: 42px;
+      height: 18px;
+      border-radius: 999px;
+      background: var(--muted);
+    }
+
+    .feature-dot {
+      position: absolute;
+      bottom: 14px;
+      right: 14px;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: var(--muted-light);
+    }
+
+    .feature-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0 4px;
+    }
+
+    .dot {
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: var(--muted);
+    }
+
+    /* Middle */
+    .mid-top {
+      flex: 1.1;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      min-height: 200px;
+    }
+
+    .lines {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .line {
+      height: 10px;
+      border-radius: 999px;
+      background: var(--line);
+    }
+
+    .line.w60 { width: 60%; }
+    .line.w40 { width: 40%; }
+    .line.w80 { width: 80%; }
+    .line.w50 { width: 50%; }
+    .line.w70 { width: 70%; }
+    .line.w90 { width: 90%; }
+    .line.w100 { width: 100%; }
+    .line.thick {
+      height: 14px;
+      background: var(--muted);
+    }
+
+    .cta-pill {
+      width: 72px;
+      height: 26px;
+      border-radius: 999px;
+      background: var(--muted);
+      margin-top: auto;
+    }
+
+    .mid-bottom {
+      flex: 0.9;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      padding: 14px;
+      min-height: 160px;
+    }
+
+    .list-block {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      padding-top: 4px;
+    }
+
+    .list-label {
+      width: 48px;
+      height: 16px;
+      border-radius: 999px;
+      background: var(--muted);
+      margin-bottom: 6px;
+    }
+
+    .toggle-panel {
+      background: var(--surface-inner);
+      border-radius: 16px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 14px;
+      padding: 16px;
+    }
+
+    .toggle-face {
+      width: 56px;
+      height: 56px;
+      border-radius: 14px;
+      background: var(--surface-raised);
+    }
+
+    .toggle {
+      width: 44px;
+      height: 24px;
+      border-radius: 999px;
+      background: var(--muted);
+      position: relative;
+    }
+
+    .toggle::after {
+      content: "";
+      position: absolute;
+      top: 3px;
+      left: 3px;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: #c8c8c8;
+    }
+
+    /* Right column cards */
+    .right-card {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      min-height: 0;
+    }
+
+    .card-head {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+    }
+
+    .label-pill {
+      width: 52px;
+      height: 16px;
+      border-radius: 999px;
+      background: var(--muted);
+    }
+
+    .icon-circle {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: var(--muted-light);
+      flex-shrink: 0;
+    }
+
+    .avatar-row {
+      display: flex;
+      gap: 8px;
+      margin-top: auto;
+      padding-top: 8px;
+    }
+
+    .avatar-sm {
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: var(--muted);
+    }
+
+    .stack-icon {
+      position: absolute;
+      bottom: 14px;
+      right: 14px;
+      width: 36px;
+      height: 36px;
+    }
+
+    .stack-icon span {
+      position: absolute;
+      width: 26px;
+      height: 26px;
+      border-radius: 8px;
+      background: var(--muted);
+      border: 2px solid var(--surface-raised);
+    }
+
+    .stack-icon span:nth-child(1) {
+      bottom: 0;
+      right: 0;
+      opacity: 0.45;
+      transform: rotate(-12deg);
+    }
+
+    .stack-icon span:nth-child(2) {
+      bottom: 2px;
+      right: 4px;
+      opacity: 0.7;
+      transform: rotate(-4deg);
+    }
+
+    .stack-icon span:nth-child(3) {
+      bottom: 4px;
+      right: 8px;
+      background: var(--muted-light);
+    }
+
+    /* —— Build-up animation primitives —— */
+    .anim {
+      opacity: 0;
+      transform: translateY(18px) scale(0.96);
+      transition:
+        opacity 0.55s var(--ease),
+        transform 0.55s var(--ease);
+      will-change: opacity, transform;
+    }
+
+    .anim.is-in {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+
+    .anim.pop {
+      transform: translateY(10px) scale(0.85);
+    }
+
+    .anim.pop.is-in {
+      transform: translateY(0) scale(1);
+    }
+
+    .anim.slide-up {
+      transform: translateY(32px);
+    }
+
+    .anim.slide-up.is-in {
+      transform: translateY(0);
+    }
+
+    .replay {
+      position: fixed;
+      bottom: 28px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 10;
+      appearance: none;
+      border: none;
+      background: #3a3a3a;
+      color: #bbb;
+      font-size: 13px;
+      letter-spacing: 0.04em;
+      padding: 10px 22px;
+      border-radius: 999px;
+      cursor: pointer;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.4s ease, background 0.2s ease, color 0.2s ease;
+    }
+
+    .replay.visible {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .replay:hover {
+      background: #4a4a4a;
+      color: #eee;
+    }
+
+    @media (max-width: 720px) {
+      body { padding: 1rem; }
+      .dashboard { padding: 14px; border-radius: 20px; }
+      .tabs { padding-left: 0; flex-wrap: wrap; }
+      .grid {
+        grid-template-columns: 1fr;
+        min-height: auto;
+      }
+      .feature { min-height: 280px; }
+      .mid-top { min-height: 160px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="stage">
+    <div class="dashboard" id="dashboard">
+      <!-- Top bar -->
+      <header class="topbar">
+        <div class="logo anim pop" data-step="header"></div>
+        <div class="search anim" data-step="header">
+          <div class="search-icon anim pop" data-step="header-inner"></div>
+        </div>
+        <div class="top-actions">
+          <div class="pill-btn anim pop" data-step="header"></div>
+          <div class="pill-btn anim pop" data-step="header"></div>
+          <div class="pill-btn anim pop" data-step="header"></div>
+          <div class="avatar anim pop" data-step="header"></div>
+        </div>
+      </header>
+
+      <!-- Tabs -->
+      <nav class="tabs">
+        <div class="tab anim" data-step="tabs"></div>
+        <div class="tab anim" data-step="tabs"></div>
+        <div class="tab anim" data-step="tabs"></div>
+        <div class="tab anim" data-step="tabs"></div>
+        <div class="tab anim" data-step="tabs"></div>
+      </nav>
+
+      <!-- Main grid -->
+      <div class="grid">
+        <!-- Left -->
+        <div class="col">
+          <article class="card feature anim slide-up" data-step="col-left">
+            <div class="feature-inner anim" data-step="col-left-inner">
+              <div class="feature-badge anim pop" data-step="col-left-bits"></div>
+              <div class="feature-dot anim pop" data-step="col-left-bits"></div>
+            </div>
+            <div class="feature-footer anim" data-step="col-left-bits">
+              <div class="dot"></div>
+              <div class="dot"></div>
+            </div>
+          </article>
+        </div>
+
+        <!-- Middle -->
+        <div class="col">
+          <article class="card mid-top anim slide-up" data-step="col-mid">
+            <div class="lines">
+              <div class="line w60 anim" data-step="col-mid-inner"></div>
+              <div class="line w40 anim" data-step="col-mid-inner"></div>
+            </div>
+            <div class="cta-pill anim pop" data-step="col-mid-inner"></div>
+          </article>
+
+          <article class="card mid-bottom anim slide-up" data-step="col-mid">
+            <div class="list-block">
+              <div class="list-label anim pop" data-step="col-mid-inner"></div>
+              <div class="line w90 anim" data-step="col-mid-inner"></div>
+              <div class="line w70 anim" data-step="col-mid-inner"></div>
+              <div class="line w80 anim" data-step="col-mid-inner"></div>
+              <div class="line w50 anim" data-step="col-mid-inner"></div>
+            </div>
+            <div class="toggle-panel anim" data-step="col-mid-inner">
+              <div class="toggle-face anim pop" data-step="col-mid-bits"></div>
+              <div class="toggle anim pop" data-step="col-mid-bits"></div>
+            </div>
+          </article>
+        </div>
+
+        <!-- Right -->
+        <div class="col">
+          <article class="card right-card anim slide-up" data-step="col-right">
+            <div class="card-head">
+              <div class="label-pill anim pop" data-step="col-right-inner"></div>
+              <div class="icon-circle anim pop" data-step="col-right-inner"></div>
+            </div>
+            <div class="lines">
+              <div class="line w70 anim" data-step="col-right-inner"></div>
+              <div class="line w50 anim" data-step="col-right-inner"></div>
+            </div>
+            <div class="avatar-row">
+              <div class="avatar-sm anim pop" data-step="col-right-bits"></div>
+              <div class="avatar-sm anim pop" data-step="col-right-bits"></div>
+              <div class="avatar-sm anim pop" data-step="col-right-bits"></div>
+              <div class="avatar-sm anim pop" data-step="col-right-bits"></div>
+              <div class="avatar-sm anim pop" data-step="col-right-bits"></div>
+            </div>
+          </article>
+
+          <article class="card right-card anim slide-up" data-step="col-right">
+            <div class="card-head">
+              <div class="label-pill anim pop" data-step="col-right-inner"></div>
+              <div class="icon-circle anim pop" data-step="col-right-inner"></div>
+            </div>
+            <div class="lines">
+              <div class="line w60 anim" data-step="col-right-inner"></div>
+              <div class="line thick w100 anim" data-step="col-right-inner"></div>
+            </div>
+          </article>
+
+          <article class="card right-card anim slide-up" data-step="col-right">
+            <div class="card-head">
+              <div class="label-pill anim pop" data-step="col-right-inner"></div>
+              <div class="icon-circle anim pop" data-step="col-right-inner"></div>
+            </div>
+            <div class="lines">
+              <div class="line w80 anim" data-step="col-right-inner"></div>
+              <div class="line w45 anim" data-step="col-right-inner" style="width:45%"></div>
+            </div>
+            <div class="stack-icon anim pop" data-step="col-right-bits">
+              <span></span><span></span><span></span>
+            </div>
+          </article>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <button class="replay" id="replay" type="button">Replay</button>
+
+  <script>
+    const dashboard = document.getElementById("dashboard");
+    const replayBtn = document.getElementById("replay");
+
+    /**
+     * Build sequence: each phase reveals a group of [data-step] nodes
+     * with a stagger between siblings.
+     */
+    const SEQUENCE = [
+      { step: "shell", delay: 0 },
+      { step: "header", delay: 380, stagger: 70 },
+      { step: "header-inner", delay: 120, stagger: 40 },
+      { step: "tabs", delay: 280, stagger: 55 },
+      { step: "col-left", delay: 320, stagger: 0 },
+      { step: "col-left-inner", delay: 180, stagger: 0 },
+      { step: "col-left-bits", delay: 140, stagger: 60 },
+      { step: "col-mid", delay: 200, stagger: 90 },
+      { step: "col-mid-inner", delay: 160, stagger: 45 },
+      { step: "col-mid-bits", delay: 120, stagger: 50 },
+      { step: "col-right", delay: 180, stagger: 100 },
+      { step: "col-right-inner", delay: 140, stagger: 40 },
+      { step: "col-right-bits", delay: 120, stagger: 45 },
+    ];
+
+    let timers = [];
+
+    function clearTimers() {
+      timers.forEach(clearTimeout);
+      timers = [];
+    }
+
+    function wait(ms) {
+      return new Promise((resolve) => {
+        const id = setTimeout(resolve, ms);
+        timers.push(id);
+      });
+    }
+
+    function reset() {
+      clearTimers();
+      dashboard.classList.remove("is-in");
+      document.querySelectorAll(".anim").forEach((el) => {
+        el.classList.remove("is-in");
+      });
+      replayBtn.classList.remove("visible");
+    }
+
+    async function revealStep(step, stagger = 0) {
+      const nodes = [...document.querySelectorAll(`[data-step="${step}"]`)];
+      for (let i = 0; i < nodes.length; i++) {
+        nodes[i].classList.add("is-in");
+        if (stagger && i < nodes.length - 1) {
+          await wait(stagger);
+        }
+      }
+    }
+
+    async function play() {
+      reset();
+      await wait(80);
+
+      // Phase 0 — shell
+      dashboard.classList.add("is-in");
+
+      for (const phase of SEQUENCE) {
+        if (phase.step === "shell") continue;
+        await wait(phase.delay);
+        await revealStep(phase.step, phase.stagger ?? 0);
+      }
+
+      await wait(500);
+      replayBtn.classList.add("visible");
+    }
+
+    replayBtn.addEventListener("click", play);
+
+    // Auto-play on load
+    if (document.readyState === "loading") {
+      document.addEventListener("DOMContentLoaded", play);
+    } else {
+      play();
+    }
+  </script>
+</body>
+</html>
