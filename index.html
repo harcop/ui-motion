@@ -37,7 +37,6 @@
       font-family: system-ui, -apple-system, sans-serif;
       overflow: hidden;
       padding: clamp(0.75rem, 3vw, 2rem);
-      padding-bottom: 5rem;
       transition: background 1.2s var(--ease);
     }
 
@@ -704,69 +703,6 @@
       transform: scaleX(1);
     }
 
-    .replay {
-      position: fixed;
-      bottom: 28px;
-      left: 50%;
-      transform: translateX(-50%);
-      z-index: 30;
-      appearance: none;
-      border: none;
-      background: #3a3a3a;
-      color: #bbb;
-      font-size: 13px;
-      letter-spacing: 0.04em;
-      padding: 10px 22px;
-      border-radius: 999px;
-      cursor: pointer;
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity 0.4s ease, background 0.2s ease, color 0.2s ease;
-    }
-
-    body.is-gray .replay.visible {
-      background: #2a2a2a;
-      color: #bbb;
-    }
-
-    body.is-gray .replay.visible:hover {
-      background: #333;
-      color: #eee;
-    }
-
-    .replay.visible {
-      opacity: 1;
-      pointer-events: auto;
-    }
-
-    .replay:hover {
-      background: #4a4a4a;
-      color: #eee;
-    }
-
-    .size-label {
-      position: fixed;
-      top: 24px;
-      left: 50%;
-      transform: translateX(-50%) translateY(-8px);
-      z-index: 10;
-      font-size: 12px;
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
-      color: #888;
-      background: rgba(40, 40, 40, 0.85);
-      padding: 8px 14px;
-      border-radius: 999px;
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity 0.35s ease, transform 0.35s var(--ease);
-    }
-
-    .size-label.visible {
-      opacity: 1;
-      transform: translateX(-50%) translateY(0);
-    }
-
     /* —— Size-driven layouts (animated big → mid → small → mid → big) —— */
     .stage[data-size="mid"] .dashboard.has-left .tabs {
       padding-left: 0;
@@ -947,17 +883,12 @@
       body {
         place-items: center;
         padding: 0.75rem;
-        padding-bottom: 5.5rem;
-      }
-
-      .replay {
-        bottom: 16px;
+        padding-bottom: 2rem;
       }
     }
   </style>
 </head>
 <body>
-  <div class="size-label" id="sizeLabel">Desktop</div>
   <div class="gray-veil" id="grayVeil" aria-hidden="true"></div>
   <div class="end-title" id="endTitle" aria-hidden="true">
     <h1 id="endHeadline"></h1>
@@ -1084,14 +1015,10 @@
     </div>
   </div>
 
-  <button class="replay" id="replay" type="button">Replay</button>
-
   <script>
     const dashboard = document.getElementById("dashboard");
     const grid = document.getElementById("grid");
     const stage = document.getElementById("stage");
-    const sizeLabel = document.getElementById("sizeLabel");
-    const replayBtn = document.getElementById("replay");
     const endTitle = document.getElementById("endTitle");
     const endHeadline = document.getElementById("endHeadline");
     const grayVeil = document.getElementById("grayVeil");
@@ -1102,9 +1029,9 @@
     const CLOSING_TEXT = "What are you working on?";
 
     const SIZES = {
-      big: { width: 920, label: "Desktop" },
-      mid: { width: 680, label: "Tablet" },
-      small: { width: 360, label: "Mobile" },
+      big: { width: 920 },
+      mid: { width: 680 },
+      small: { width: 360 },
     };
 
     // big → mid → small → mid → big
@@ -1239,23 +1166,13 @@
       return Math.min(target, Math.max(280, max));
     }
 
-    function showSizeLabel(text) {
-      sizeLabel.textContent = text;
-      sizeLabel.classList.add("visible");
-    }
-
-    function hideSizeLabel() {
-      sizeLabel.classList.remove("visible");
-    }
-
     /**
      * Shrink/grow the stage width and switch layout (big/mid/small).
      * Width eases via CSS; cards FLIP into the new arrangement.
      */
     async function setStageSize(key, { duration = MORPH_MS } = {}) {
-      const { width, label } = SIZES[key];
+      const { width } = SIZES[key];
       const next = cappedWidth(width);
-      showSizeLabel(label);
 
       const first = measureCards();
 
@@ -1334,7 +1251,6 @@
       stage.dataset.size = "big";
       stage.style.width = `${cappedWidth(SIZES.big.width)}px`;
       lockFrameHeight();
-      showSizeLabel(SIZES.big.label);
       await wait(500);
 
       for (let i = 1; i < MORPH_SEQUENCE.length; i++) {
@@ -1343,7 +1259,6 @@
       }
 
       await wait(350);
-      hideSizeLabel();
       stage.classList.remove("is-morphing");
       morphing = false;
     }
@@ -1354,7 +1269,6 @@
       dashboard.classList.remove("is-locked");
       dashboard.style.removeProperty("--frame-h");
       dashboard.scrollTop = 0;
-      hideSizeLabel();
       stage.classList.remove("is-morphing");
       morphing = false;
     }
@@ -1378,7 +1292,6 @@
 
     /** UI collapses into the question and holds */
     async function closingAnimation() {
-      hideSizeLabel();
       await wait(280);
 
       // Dashboard shrinks / blurs toward center
@@ -1415,7 +1328,6 @@
       });
       document.querySelectorAll(".anim, .tab, .feature-inner, .feature-footer, .toggle-panel")
         .forEach((el) => el.classList.remove("is-in"));
-      replayBtn.classList.remove("visible");
     }
 
     async function play() {
@@ -1471,14 +1383,9 @@
 
       await wait(400);
 
-      // Closing: transform into question → gray screen
+      // Closing: transform into question and hold
       await closingAnimation();
-
-      await wait(200);
-      replayBtn.classList.add("visible");
     }
-
-    replayBtn.addEventListener("click", play);
 
     /* Keep layout in sync with real viewport when not morphing */
     let resizeTimer = 0;
