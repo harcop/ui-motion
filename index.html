@@ -32,8 +32,7 @@
         radial-gradient(ellipse 80% 60% at 50% 40%, #222 0%, transparent 70%),
         linear-gradient(180deg, #1c1c1c 0%, #141414 100%);
       font-family: system-ui, -apple-system, sans-serif;
-      overflow-x: hidden;
-      overflow-y: auto;
+      overflow: hidden;
       padding: clamp(0.75rem, 3vw, 2rem);
       padding-bottom: 5rem;
     }
@@ -95,6 +94,45 @@
     .dashboard.is-in {
       opacity: 1;
       transform: scale(1) translateY(0);
+    }
+
+    /* Lock to desktop frame height; overflow scrolls inside */
+    .dashboard.is-locked {
+      height: var(--frame-h);
+      max-height: var(--frame-h);
+      overflow-x: hidden;
+      overflow-y: auto;
+      overscroll-behavior: contain;
+      scrollbar-width: thin;
+      scrollbar-color: #555 transparent;
+      scroll-behavior: auto;
+    }
+
+    .dashboard.is-locked::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    .dashboard.is-locked::-webkit-scrollbar-thumb {
+      background: #555;
+      border-radius: 999px;
+    }
+
+    .dashboard.is-locked .topbar,
+    .dashboard.is-locked .tabs {
+      position: sticky;
+      top: 0;
+      z-index: 2;
+      background: var(--surface);
+    }
+
+    .dashboard.is-locked .topbar {
+      padding-bottom: 4px;
+      margin-bottom: clamp(8px, 2cqw, 12px);
+    }
+
+    .dashboard.is-locked .tabs {
+      padding-bottom: 10px;
+      margin-bottom: 8px;
     }
 
     /* —— Header —— */
@@ -788,10 +826,10 @@
       display: block;
     }
 
-    /* True viewport: keep page scrollable on real phones */
+    /* True viewport: keep frame centered on real phones */
     @media (max-width: 540px) {
       body {
-        place-items: start center;
+        place-items: center;
         padding: 0.75rem;
         padding-bottom: 5.5rem;
       }
@@ -1087,6 +1125,7 @@
 
       stage.dataset.size = key;
       stage.style.width = `${next}px`;
+      dashboard.scrollTop = 0;
 
       await new Promise((r) => {
         flipRaf = requestAnimationFrame(() => {
@@ -1098,6 +1137,58 @@
       });
 
       await wait(duration);
+
+      // On compact layouts, scroll overflow into view then back
+      if (key === "mid" || key === "small") {
+        await peekOverflow();
+      } else {
+        dashboard.scrollTop = 0;
+      }
+    }
+
+    /** Smoothly scroll the locked frame to reveal overflow, then return */
+    function animateScroll(el, to, duration) {
+      const from = el.scrollTop;
+      const delta = to - from;
+      if (Math.abs(delta) < 2) return Promise.resolve();
+
+      const start = performance.now();
+      return new Promise((resolve) => {
+        function frame(now) {
+          const t = Math.min(1, (now - start) / duration);
+          const eased = 1 - Math.pow(1 - t, 3);
+          el.scrollTop = from + delta * eased;
+          if (t < 1) {
+            const id = requestAnimationFrame(frame);
+            // track via timers cleanup by storing cancel on clearTimers — use wait pattern
+            flipRaf = id;
+          } else {
+            resolve();
+          }
+        }
+        flipRaf = requestAnimationFrame(frame);
+      });
+    }
+
+    async function peekOverflow() {
+      const max = dashboard.scrollHeight - dashboard.clientHeight;
+      if (max <= 12) return;
+
+      await wait(200);
+      await animateScroll(dashboard, max, 700);
+      await wait(450);
+      await animateScroll(dashboard, 0, 700);
+    }
+
+    function lockFrameHeight() {
+      // Capture desktop frame height so mid/small never grow the outer shell
+      dashboard.classList.remove("is-locked");
+      dashboard.style.removeProperty("--frame-h");
+      void dashboard.offsetHeight;
+      const h = Math.ceil(dashboard.getBoundingClientRect().height);
+      dashboard.style.setProperty("--frame-h", `${h}px`);
+      dashboard.classList.add("is-locked");
+      dashboard.scrollTop = 0;
     }
 
     /** After build-up: big → mid → small → mid → big */
@@ -1105,6 +1196,8 @@
       morphing = true;
       stage.classList.add("is-morphing");
       stage.dataset.size = "big";
+      stage.style.width = `${cappedWidth(SIZES.big.width)}px`;
+      lockFrameHeight();
       showSizeLabel(SIZES.big.label);
       await wait(500);
 
@@ -1122,6 +1215,9 @@
     function resetStageWidth() {
       stage.style.width = "";
       stage.dataset.size = "big";
+      dashboard.classList.remove("is-locked");
+      dashboard.style.removeProperty("--frame-h");
+      dashboard.scrollTop = 0;
       hideSizeLabel();
       stage.classList.remove("is-morphing");
       morphing = false;
